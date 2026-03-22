@@ -12,7 +12,7 @@ export function createPublicRouter() {
   router.post('/analytics', postPublicAnalyticsEvent)
   router.post('/telegram/webhook', postTelegramWebhook)
   router.get('/whatsapp/webhook', getWhatsAppWebhook)
-  router.post('/whatsapp/webhook', postWhatsAppWebhook)
+  // router.post('/whatsapp/webhook', postWhatsAppWebhook) // Now handled directly in app.ts
 
   return router
 }

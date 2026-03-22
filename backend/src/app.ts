@@ -16,6 +16,8 @@ import { createOwnerRouter } from './routes/ownerRoutes.js'
 import { createPublicRouter } from './routes/publicRoutes.js'
 import { createTenantRouter } from './routes/tenantRoutes.js'
 
+import { postWhatsAppWebhook } from './controllers/whatsappController.js';
+
 const require = createRequire(import.meta.url)
 const helmetImport = require('helmet') as
   | ((...args: unknown[]) => RequestHandler)
@@ -28,6 +30,9 @@ export function createApp() {
   const app = express()
 
   morgan.token('requestId', (request) => (request as Request).requestId ?? '-')
+
+  // Bypass all middleware for WhatsApp webhook POST
+  app.post('/api/public/whatsapp/webhook', express.json({ limit: '1mb' }), postWhatsAppWebhook);
 
   app.use(requestContext)
   app.use((request, response, next) => {

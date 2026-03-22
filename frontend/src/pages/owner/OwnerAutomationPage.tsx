@@ -180,8 +180,8 @@ export function OwnerAutomationPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f1cb85]">Automation Center</p>
-            <h2 className="ph-title mt-3 text-3xl font-semibold text-[var(--ph-text)]">Automation visibility and control</h2>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--ph-text-muted)]">
+            <h2 className="ph-title mt-3 text-3xl font-semibold text-(--ph-text)">Automation visibility and control</h2>
+            <p className="mt-2 text-sm leading-relaxed text-(--ph-text-muted)">
               Configure the automations already live for your organization, review scheduler posture, and keep owner-facing
               alerts disciplined without leaving the Prophives dashboard shell.
             </p>
@@ -391,29 +391,29 @@ export function OwnerAutomationPage() {
                 icon={<Mail className="h-5 w-5" />}
               >
                 <div className="space-y-3">
-                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/[0.03] px-4 py-4">
+                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/3 px-4 py-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-[var(--ph-text)]">Email delivery</p>
-                        <p className="mt-1 text-xs text-[var(--ph-text-muted)]">Active for compliance, reporting, and owner-facing automation notifications.</p>
+                        <p className="text-sm font-semibold text-(--ph-text)">Email delivery</p>
+                        <p className="mt-1 text-xs text-(--ph-text-muted)">Active for compliance, reporting, and owner-facing automation notifications.</p>
                       </div>
                       <AutomationStatusBadge status="healthy" label="Live" />
                     </div>
                   </div>
-                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/[0.03] px-4 py-4">
+                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/3 px-4 py-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-[var(--ph-text)]">Dashboard notifications</p>
-                        <p className="mt-1 text-xs text-[var(--ph-text-muted)]">Used as the in-product source of truth for owner alerts and operational events.</p>
+                        <p className="text-sm font-semibold text-(--ph-text)">Dashboard notifications</p>
+                        <p className="mt-1 text-xs text-(--ph-text-muted)">Used as the in-product source of truth for owner alerts and operational events.</p>
                       </div>
                       <AutomationStatusBadge status="healthy" label="Live" />
                     </div>
                   </div>
-                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/[0.03] px-4 py-4">
+                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/3 px-4 py-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-[var(--ph-text)]">WhatsApp abstraction</p>
-                        <p className="mt-1 text-xs text-[var(--ph-text-muted)]">Provider-neutral transport is ready, but live template/session delivery still depends on provider setup.</p>
+                        <p className="text-sm font-semibold text-(--ph-text)">WhatsApp abstraction</p>
+                        <p className="mt-1 text-xs text-(--ph-text-muted)">Provider-neutral transport is ready, but live template/session delivery still depends on provider setup.</p>
                       </div>
                       <AutomationStatusBadge
                         status={settings.status_command_enabled ? 'queued' : 'idle'}
@@ -421,11 +421,11 @@ export function OwnerAutomationPage() {
                       />
                     </div>
                   </div>
-                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/[0.03] px-4 py-4">
+                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/3 px-4 py-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-[var(--ph-text)]">Internal command surfaces</p>
-                        <p className="mt-1 text-xs text-[var(--ph-text-muted)]">Future status, trigger, and assisted-action commands for conversational workflows.</p>
+                        <p className="text-sm font-semibold text-(--ph-text)">Internal command surfaces</p>
+                        <p className="mt-1 text-xs text-(--ph-text-muted)">Future status, trigger, and assisted-action commands for conversational workflows.</p>
                       </div>
                       <AutomationStatusBadge status="queued" label="Planned" />
                     </div>
@@ -445,19 +445,19 @@ export function OwnerAutomationPage() {
                 }
               >
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/[0.03] px-4 py-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ph-text-muted)]">Last run</p>
-                    <p className="mt-2 text-sm font-semibold text-[var(--ph-text)]">
+                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/3 px-4 py-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--ph-text-muted)">Last run</p>
+                    <p className="mt-2 text-sm font-semibold text-(--ph-text)">
                       {lastRun ? formatDateTime(lastRun.completed_at ?? lastRun.started_at) : 'No runs recorded'}
                     </p>
-                    <p className="mt-1 text-xs text-[var(--ph-text-muted)]">
+                    <p className="mt-1 text-xs text-(--ph-text-muted)">
                       {lastRun ? `${lastRun.flow_name.replaceAll('_', ' ')} processed ${lastRun.processed_count}` : 'The scheduler has not logged an org-scoped run yet.'}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/[0.03] px-4 py-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ph-text-muted)]">Next cadence</p>
-                    <p className="mt-2 text-sm font-semibold text-[var(--ph-text)]">{getExpectedNextCycle(settings)}</p>
-                    <p className="mt-1 text-xs text-[var(--ph-text-muted)]">
+                  <div className="rounded-lg border border-[rgba(83,88,100,0.38)] bg-white/3 px-4 py-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--ph-text-muted)">Next cadence</p>
+                    <p className="mt-2 text-sm font-semibold text-(--ph-text)">{getExpectedNextCycle(settings)}</p>
+                    <p className="mt-1 text-xs text-(--ph-text-muted)">
                       {settings.daily_digest_enabled || settings.compliance_alerts_enabled || settings.rent_chasing_enabled
                         ? 'Expect the next daily pass inside the next 24 hours.'
                         : 'Enable a scheduled category to rejoin the scheduler cycle.'}
@@ -515,20 +515,20 @@ export function OwnerAutomationPage() {
                     <DataTable headers={['Property', 'Gross Rent', 'Costs', 'Net Income', 'Yield']}>
                       {currentProperties.map((property) => (
                         <tr key={property.property_id}>
-                          <td className="px-4 py-3 text-[var(--ph-text)]">
+                          <td className="px-4 py-3 text-(--ph-text)">
                             <div className="font-medium">{property.property_name}</div>
-                            <div className="mt-1 text-xs text-[var(--ph-text-muted)]">
+                            <div className="mt-1 text-xs text-(--ph-text-muted)">
                               {property.unit_number ? `Unit ${property.unit_number}` : 'Unit not provided'}
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-[var(--ph-text-soft)]">
+                          <td className="px-4 py-3 text-(--ph-text-soft)">
                             {formatCurrency(property.gross_rent_received, currentCurrencyCode)}
                           </td>
-                          <td className="px-4 py-3 text-[var(--ph-text-soft)]">
+                          <td className="px-4 py-3 text-(--ph-text-soft)">
                             {formatCurrency(property.maintenance_costs + property.fixed_charges, currentCurrencyCode)}
                           </td>
-                          <td className="px-4 py-3 text-[var(--ph-text-soft)]">{formatCurrency(property.net_income, currentCurrencyCode)}</td>
-                          <td className="px-4 py-3 text-[var(--ph-text-soft)]">
+                          <td className="px-4 py-3 text-(--ph-text-soft)">{formatCurrency(property.net_income, currentCurrencyCode)}</td>
+                          <td className="px-4 py-3 text-[var(--ph-text-soft)">
                             {typeof property.yield_percent === 'number' ? `${property.yield_percent}%` : 'N/A'}
                           </td>
                         </tr>
@@ -559,13 +559,13 @@ export function OwnerAutomationPage() {
                 <DataTable headers={['Report', 'Scope', 'Trigger', 'Net Income', 'Generated']}>
                   {latestSnapshots.map((snapshot: CashFlowSnapshot) => (
                     <tr key={snapshot.id}>
-                      <td className="px-4 py-3 text-[var(--ph-text)]">{snapshot.report_label}</td>
-                      <td className="px-4 py-3 text-[var(--ph-text-soft)]">{snapshot.report_scope}</td>
-                      <td className="px-4 py-3 text-[var(--ph-text-soft)]">{snapshot.trigger_type}</td>
-                      <td className="px-4 py-3 text-[var(--ph-text-soft)]">
+                      <td className="px-4 py-3 text-(--ph-text)">{snapshot.report_label}</td>
+                      <td className="px-4 py-3 text-(--ph-text-soft)">{snapshot.report_scope}</td>
+                      <td className="px-4 py-3 text-(--ph-text-soft)">{snapshot.trigger_type}</td>
+                      <td className="px-4 py-3 text-(--ph-text-soft)">
                         {formatCurrency(snapshot.portfolio_net_income, snapshot.currency_code)}
                       </td>
-                      <td className="px-4 py-3 text-[var(--ph-text-soft)]">{formatDateTime(snapshot.created_at)}</td>
+                      <td className="px-4 py-3 text-(--ph-text-soft)">{formatDateTime(snapshot.created_at)}</td>
                     </tr>
                   ))}
                 </DataTable>
@@ -588,21 +588,21 @@ export function OwnerAutomationPage() {
               <DataTable headers={['Property', 'Trigger', 'Date', 'Next Window', 'Next Action']}>
                 {compliance.upcoming_items.slice(0, 8).map((item) => (
                   <tr key={`${item.legal_date_id}-${item.trigger_date_type}`}>
-                    <td className="px-4 py-3 text-[var(--ph-text)]">
+                    <td className="px-4 py-3 text-(--ph-text)">
                       <div className="font-medium">{item.property_name}</div>
-                      <div className="mt-1 text-xs text-[var(--ph-text-muted)]">
+                      <div className="mt-1 text-xs text-(--ph-text-muted)">
                         {item.unit_number ? `Unit ${item.unit_number}` : 'Unit not provided'}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[var(--ph-text-soft)]">{item.trigger_label}</td>
-                    <td className="px-4 py-3 text-[var(--ph-text-soft)]">
+                    <td className="px-4 py-3 text-(--ph-text-soft)">{item.trigger_label}</td>
+                    <td className="px-4 py-3 text-(--ph-text-soft)">
                       <div>{item.relevant_date_label}</div>
-                      <div className="mt-1 text-xs text-[var(--ph-text-muted)]">{item.days_remaining} days remaining</div>
+                      <div className="mt-1 text-xs text-(--ph-text-muted)">{item.days_remaining} days remaining</div>
                     </td>
-                    <td className="px-4 py-3 text-[var(--ph-text-soft)]">
+                    <td className="px-4 py-3 text-(--ph-text-soft)">
                       {item.next_threshold ? `${item.next_threshold} days` : 'Window complete'}
                     </td>
-                    <td className="px-4 py-3 text-[var(--ph-text-soft)]">{item.next_action}</td>
+                    <td className="px-4 py-3 text-(--ph-text-soft)">{item.next_action}</td>
                   </tr>
                 ))}
               </DataTable>

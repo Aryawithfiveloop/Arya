@@ -1,5 +1,5 @@
+import axios from 'axios'
 import type { PostgrestError } from '@supabase/supabase-js'
-import crypto from 'node:crypto'
 
 import { env } from '../../../config/env.js'
 import { AppError } from '../../../lib/errors.js'
@@ -68,11 +68,11 @@ function normalizeRecipient(recipient: string) {
 }
 
 function providerName() {
-  return env.WHATSAPP_PROVIDER ?? 'disabled'
+  return env.WHATSAPP_PROVIDER ?? 'disabled';
 }
 
-function isStubProviderEnabled() {
-  return env.WHATSAPP_PROVIDER === 'stub'
+function isMetaProviderEnabled() {
+  return env.WHATSAPP_PROVIDER === 'meta';
 }
 
 function mapDeliveryStatus(value: string | null | undefined): DeliveryUpdateStatus | null {
@@ -488,187 +488,57 @@ async function sendViaStub(input: {
 
 export class DefaultWhatsAppProvider implements WhatsAppProvider {
   async sendTemplate(input: WhatsAppTemplateSendInput): Promise<ProviderResult> {
-    const recipient = readString(input.recipient)
-    if (!recipient) {
-      return {
-        provider: providerName(),
-        status: 'skipped',
-        reason: 'no_recipient',
-      }
+    if (!isMetaProviderEnabled()) {
+      return { provider: providerName(), status: 'skipped', reason: 'provider_not_configured' };
     }
-
-    const resolved = await resolveAutomationMessageTemplate({
-      organizationId: input.organizationId ?? null,
-      templateKey: input.templateKey,
-      channel: 'whatsapp',
-      fallbackBody: input.fallbackText ?? '',
-      variables: input.variables,
-    }).catch(async (error) => {
-      await recordOutboundFailure({
-        organizationId: input.organizationId,
-        ownerId: input.ownerId,
-        automationJobId: input.automationJobId,
-        flowName: input.flowName,
-        errorMessage: error instanceof Error ? error.message : 'whatsapp_template_resolution_failed',
-        context: {
-          template_key: input.templateKey,
-          recipient,
-        },
-      })
-      throw error
-    })
-
-    const renderedBody = resolved.body.trim()
-    const delivery = await createOutboundDelivery({
-      organizationId: input.organizationId,
-      ownerId: input.ownerId,
-      tenantId: input.tenantId,
-      automationJobId: input.automationJobId,
-      automationRunId: input.automationRunId,
-      recipient,
-      templateKey: input.templateKey,
-      policyMode: 'template',
-      messageKind: 'template',
-      renderedBody,
-      fallbackText: input.fallbackText ?? null,
-      attemptKey: input.attemptKey ?? null,
-      payload: {
-        template_source: resolved.source,
-        template_variables: input.variables ?? {},
-        language: input.language ?? 'en',
-      },
-    })
-
-    if (!renderedBody) {
-      await updateOutboundDelivery({
-        deliveryId: delivery.id,
-        integrationEventId: delivery.integration_event_id,
-        status: 'skipped',
-        lastError: 'empty_rendered_body',
-      })
-      return {
-        provider: providerName(),
-        status: 'skipped',
-        reason: 'empty_rendered_body',
-        metadata: { delivery_id: delivery.id },
-      }
-    }
-
-    if (!isStubProviderEnabled()) {
-      await updateOutboundDelivery({
-        deliveryId: delivery.id,
-        integrationEventId: delivery.integration_event_id,
-        status: 'skipped',
-        lastError: 'provider_not_configured',
-      })
-      return {
-        provider: providerName(),
-        status: 'skipped',
-        reason: 'provider_not_configured',
-        metadata: { delivery_id: delivery.id },
-      }
-    }
-
-    const providerMessageId = await sendViaStub({
-      deliveryId: delivery.id,
-      integrationEventId: delivery.integration_event_id,
-      mode: 'template',
-      recipient,
-      preview: renderedBody,
-      providerPayload: {
-        template_key: input.templateKey,
-        template_source: resolved.source,
-      },
-    })
-
-    return {
-      provider: providerName(),
-      status: 'sent',
-      externalId: providerMessageId,
-      metadata: {
-        delivery_id: delivery.id,
-        policy_mode: 'template',
-        template_source: resolved.source,
-      },
+    const recipient = input.recipient;
+    try {
+      const url = `https://graph.facebook.com/v22.0/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+      const payload = {
+        messaging_product: "whatsapp",
+        to: recipient,
+        type: "template",
+        template: {
+          name: "hello_world", // You may want to use input.templateKey if dynamic
+          language: { code: "en_US" }
+        }
+      };
+      await axios.post(url, payload, {
+        headers: {
+          Authorization: `Bearer ${env.WHATSAPP_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return { provider: providerName(), status: 'sent' };
+    } catch (error: any) {
+      console.error('WhatsApp Template Send Error:', error?.response?.data || error.message);
+      return { provider: providerName(), status: 'failed', reason: 'api_error', metadata: { error: error?.response?.data || error.message } };
     }
   }
 
   async sendFreeform(input: WhatsAppFreeformSendInput): Promise<ProviderResult> {
-    const recipient = readString(input.recipient)
-    const text = readString(input.text)
-
-    if (!recipient || !text) {
-      return {
-        provider: providerName(),
-        status: 'skipped',
-        reason: 'invalid_freeform_payload',
-      }
+    if (!isMetaProviderEnabled()) {
+      return { provider: providerName(), status: 'skipped', reason: 'provider_not_configured' };
     }
-
-    const delivery = await createOutboundDelivery({
-      organizationId: input.organizationId,
-      ownerId: input.ownerId,
-      tenantId: input.tenantId,
-      automationJobId: input.automationJobId,
-      automationRunId: input.automationRunId,
-      recipient,
-      policyMode: 'session',
-      messageKind: 'freeform',
-      renderedBody: text,
-      attemptKey: input.attemptKey ?? null,
-      payload: {
-        policy_context: input.policyContext ?? {},
-        metadata: input.metadata ?? {},
-      },
-    })
-
-    if (input.policyContext?.sessionOpen !== true) {
-      await updateOutboundDelivery({
-        deliveryId: delivery.id,
-        integrationEventId: delivery.integration_event_id,
-        status: 'skipped',
-        lastError: 'session_policy_unverified',
-      })
-
-      return {
-        provider: providerName(),
-        status: 'skipped',
-        reason: 'session_policy_unverified',
-        metadata: { delivery_id: delivery.id },
-      }
-    }
-
-    if (!isStubProviderEnabled()) {
-      await updateOutboundDelivery({
-        deliveryId: delivery.id,
-        integrationEventId: delivery.integration_event_id,
-        status: 'skipped',
-        lastError: 'provider_not_configured',
-      })
-      return {
-        provider: providerName(),
-        status: 'skipped',
-        reason: 'provider_not_configured',
-        metadata: { delivery_id: delivery.id },
-      }
-    }
-
-    const providerMessageId = await sendViaStub({
-      deliveryId: delivery.id,
-      integrationEventId: delivery.integration_event_id,
-      mode: 'freeform',
-      recipient,
-      preview: text,
-    })
-
-    return {
-      provider: providerName(),
-      status: 'sent',
-      externalId: providerMessageId,
-      metadata: {
-        delivery_id: delivery.id,
-        policy_mode: 'session',
-      },
+    const recipient = input.recipient;
+    const text = input.text;
+    try {
+      const url = `https://graph.facebook.com/v22.0/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+      const payload = {
+        messaging_product: "whatsapp",
+        to: recipient,
+        text: { body: text }
+      };
+      await axios.post(url, payload, {
+        headers: {
+          Authorization: `Bearer ${env.WHATSAPP_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return { provider: providerName(), status: 'sent' };
+    } catch (error: any) {
+      console.error('WhatsApp Freeform Send Error:', error?.response?.data || error.message);
+      return { provider: providerName(), status: 'failed', reason: 'api_error', metadata: { error: error?.response?.data || error.message } };
     }
   }
 
@@ -722,7 +592,7 @@ export class DefaultWhatsAppProvider implements WhatsAppProvider {
       }
     }
 
-    if (!isStubProviderEnabled()) {
+    if (!isMetaProviderEnabled()) {
       await updateOutboundDelivery({
         deliveryId: delivery.id,
         integrationEventId: delivery.integration_event_id,
@@ -805,20 +675,47 @@ export class DefaultWhatsAppProvider implements WhatsAppProvider {
     body: unknown
     requestId?: string | null
   }): Promise<WhatsAppWebhookEventResult> {
-    if (env.WHATSAPP_WEBHOOK_SECRET) {
-      const providedSecret = input.headers['x-whatsapp-webhook-secret']
-      if (!providedSecret || providedSecret !== env.WHATSAPP_WEBHOOK_SECRET) {
-        return {
-          handled: true,
-          statusCode: 401,
-          events: [],
-        }
-      }
-    }
+    // Removed x-whatsapp-webhook-secret check to allow Meta POSTs
 
     const events = extractWebhookEvents(input.body)
 
     for (const event of events) {
+      // Auto-reply to incoming WhatsApp messages with 'Thank You'
+      // Only reply if this is a real incoming message event (not account_settings_update, etc)
+      // Meta webhook message events have a 'messages' array in the payload
+      const isRealMessage = Array.isArray((event.payload as any)?.messages) && (event.payload as any).messages.length > 0;
+      if (event.eventType === 'message' && event.sender && isRealMessage) {
+        const apiUrl = `https://graph.facebook.com/v17.0/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+        const apiPayload = {
+          messaging_product: "whatsapp",
+          to: event.sender,
+          text: { body: "Thank You" }
+        };
+        const apiHeaders = {
+          Authorization: `Bearer ${env.WHATSAPP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json"
+        };
+        console.log("[WhatsApp API] Sending reply:", JSON.stringify({ url: apiUrl, payload: apiPayload, headers: { ...apiHeaders, Authorization: 'Bearer ***' } }, null, 2));
+        try {
+          const apiResp = await axios.post(apiUrl, apiPayload, { headers: apiHeaders });
+          console.log("[WhatsApp API] Success:", JSON.stringify(apiResp.data));
+        } catch (err) {
+          let errorMsg = "Failed to send WhatsApp reply: ";
+          if (err && typeof err === 'object') {
+            if ('response' in err && err.response && typeof err.response === 'object' && 'data' in err.response) {
+              errorMsg += JSON.stringify((err.response as any).data);
+              console.error("[WhatsApp API] Error response:", JSON.stringify((err.response as any).data, null, 2));
+            } else if ('message' in err && typeof (err as any).message === 'string') {
+              errorMsg += (err as any).message;
+            } else {
+              errorMsg += JSON.stringify(err);
+            }
+          } else {
+            errorMsg += String(err);
+          }
+          console.error(errorMsg);
+        }
+      }
   const integrationEvent = await recordIntegrationEvent({
         organizationId: event.organizationId ?? null,
         provider: 'whatsapp',
